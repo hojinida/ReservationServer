@@ -1,6 +1,6 @@
 package com.example.reservationsystem.repository
 
-import com.example.reservationsystem.dto.ReservationResult
+import com.example.reservationsystem.dto.response.ReservationResult
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.DefaultRedisScript
@@ -32,15 +32,8 @@ class RedisReservationRepository(
     }
 
     fun cancelReservation(seatNumber: String, userId: String) {
-        val reservedUsersKey = "reserved_users"
-        val seatKey = "seat:$seatNumber"
-
-        redisTemplate.execute { connection ->
-            connection.multi()
-            connection.keyCommands().del(seatKey.toByteArray())
-            connection.setCommands().sRem(reservedUsersKey.toByteArray(), userId.toByteArray())
-            connection.exec()
-        }
+        releaseReservation(seatNumber, userId)
+        redisTemplate.opsForSet().remove("reserved_users", userId)
     }
 
     fun releaseReservation(seatNumber: String, userId: String) {

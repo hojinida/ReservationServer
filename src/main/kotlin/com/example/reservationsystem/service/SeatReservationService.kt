@@ -1,6 +1,6 @@
 package com.example.reservationsystem.service
 
-import com.example.reservationsystem.dto.ReservationResult
+import com.example.reservationsystem.dto.response.ReservationResult
 import com.example.reservationsystem.repository.RedisReservationRepository
 import org.springframework.stereotype.Service
 import java.time.Duration

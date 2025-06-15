@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface SeatRepository : JpaRepository<Seat, Long> {
-    fun findBySeatNumber(seatNumber: String): Seat?
 }

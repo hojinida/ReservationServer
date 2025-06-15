@@ -1,6 +1,7 @@
 package com.example.reservationsystem.service
 
-import com.example.reservationsystem.dto.PaymentWebhookRequest
+import com.example.reservationsystem.dto.request.CancelWebhookRequest
+import com.example.reservationsystem.dto.request.PaymentWebhookRequest
 import com.example.reservationsystem.repository.IdempotencyRepository
 import org.springframework.stereotype.Service
 
@@ -10,7 +11,7 @@ class PaymentService(
     private val seatReservationService: SeatReservationService,
     private val idempotencyRepository: IdempotencyRepository
 ) {
-    fun successfulPayment(request: PaymentWebhookRequest): String {
+    fun processPaymentSuccess(request: PaymentWebhookRequest): String {
         val cachedResult = idempotencyRepository.getResult(request.idempotencyKey)
         if (cachedResult != null) return cachedResult
 
@@ -23,7 +24,7 @@ class PaymentService(
         return result
     }
 
-    fun failedPayment(request: PaymentWebhookRequest): String {
+    fun processPaymentFailure(request: PaymentWebhookRequest): String {
         val cachedResult = idempotencyRepository.getResult(request.idempotencyKey)
         if (cachedResult != null) return cachedResult
 
@@ -32,6 +33,32 @@ class PaymentService(
         seatReservationService.cancelReservation(failedOrder.seatNumber, failedOrder.userId)
 
         val result = "결제 실패 처리 완료"
+        idempotencyRepository.saveResult(request.idempotencyKey, result)
+        return result
+    }
+
+    fun successfulCancel(request: CancelWebhookRequest): String {
+        val cachedResult = idempotencyRepository.getResult(request.idempotencyKey)
+        if (cachedResult != null) return cachedResult
+
+        val order = orderService.cancel(request.orderUid)
+
+        seatReservationService.cancelReservation(order.seatNumber, order.userId)
+
+        // 이메일 발송 (가상)
+
+        val result = "취소 성공 처리 완료"
+        idempotencyRepository.saveResult(request.idempotencyKey, result)
+        return result
+    }
+
+    fun failedCancel(request: CancelWebhookRequest): String {
+        val cachedResult = idempotencyRepository.getResult(request.idempotencyKey)
+        if (cachedResult != null) return cachedResult
+
+        // 이메일 발송 (가상)
+
+        val result = "취소 실패 처리 완료"
         idempotencyRepository.saveResult(request.idempotencyKey, result)
         return result
     }

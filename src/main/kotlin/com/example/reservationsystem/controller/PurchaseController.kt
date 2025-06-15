@@ -1,6 +1,6 @@
 package com.example.reservationsystem.controller
 
-import com.example.reservationsystem.dto.toResponseEntity
+import com.example.reservationsystem.dto.response.toResponseEntity
 import com.example.reservationsystem.service.PurchaseService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController
 class PurchaseController(
     private val purchaseService: PurchaseService
 ) {
-    data class PurchaseRequest(val userId: String, val seatNumber: String)
-
     @PostMapping
     fun purchase(@RequestBody request: PurchaseRequest): ResponseEntity<Any> {
         return try {

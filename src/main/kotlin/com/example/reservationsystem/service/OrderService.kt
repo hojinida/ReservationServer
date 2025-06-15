@@ -50,4 +50,17 @@ class OrderService(
         order.status = OrderStatus.FAILED
         return order
     }
+
+    @Transactional
+    fun cancel(orderUid: String): Order {
+        val order = orderRepository.findByOrderUid(orderUid)
+            ?: throw IllegalArgumentException("주문을 찾을 수 없습니다. orderUid: $orderUid")
+
+        if (order.status == OrderStatus.CANCELLED) {
+            return order
+        }
+
+        order.status = OrderStatus.CANCELLED
+        return order
+    }
 }

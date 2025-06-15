@@ -1,4 +1,4 @@
-package com.example.reservationsystem.dto
+package com.example.reservationsystem.dto.response
 
 import com.example.reservationsystem.domain.Order
 import org.springframework.http.HttpHeaders

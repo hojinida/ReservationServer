@@ -1,6 +1,6 @@
 package com.example.reservationsystem.service
 
-import com.example.reservationsystem.dto.PurchaseResult
+import com.example.reservationsystem.dto.response.PurchaseResult
 import com.example.reservationsystem.enums.ReservationStatus
 import org.springframework.stereotype.Service
 

@@ -34,3 +34,4 @@ data class Order(
     @Column(nullable = false)
     var status: OrderStatus,
 )
+
