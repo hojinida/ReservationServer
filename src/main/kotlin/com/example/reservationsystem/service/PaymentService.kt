@@ -12,8 +12,8 @@ class PaymentService(
     private val signatureService: SignatureService,
     private val redisReservationRepository: RedisReservationRepository
 ) {
-    fun processPaymentSuccess(request: PaymentWebhookRequest): String {
-        verifySignature(request)
+    fun processPaymentSuccess(request: PaymentWebhookRequest, signature: String): String {
+        verifySignature(request, signature)
 
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
 
@@ -28,7 +28,7 @@ class PaymentService(
 
         if (result == "결제 성공 처리 완료") {
             try {
-                orderService.complete(request.orderUid, request.paymentKey)
+                orderService.complete(request.orderUid)
             } catch (e: Exception) {
                 throw e
             }
@@ -37,8 +37,8 @@ class PaymentService(
         return result
     }
 
-    fun processPaymentFailure(request: PaymentWebhookRequest): String {
-        verifySignature(request)
+    fun processPaymentFailure(request: PaymentWebhookRequest, signature: String): String {
+        verifySignature(request, signature)
 
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
 
@@ -64,8 +64,8 @@ class PaymentService(
         return result
     }
 
-    fun successfulCancel(request: CancelWebhookRequest): String {
-        verifySignature(request)
+    fun successfulCancel(request: CancelWebhookRequest, signature: String): String {
+        verifySignature(request, signature)
 
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
 
@@ -91,8 +91,8 @@ class PaymentService(
         return result
     }
 
-    fun failedCancel(request: CancelWebhookRequest): String {
-        verifySignature(request)
+    fun failedCancel(request: CancelWebhookRequest, signature: String): String {
+        verifySignature(request, signature)
 
         val result = try {
             redisReservationRepository.saveIdempotencyIfNotExists(
@@ -106,9 +106,9 @@ class PaymentService(
         return result
     }
 
-    private fun verifySignature(request: WebhookRequest) {
+    private fun verifySignature(request: WebhookRequest, signature: String) {
         val dataToVerify = "${request.orderUid}:${request.amount}:${request.idempotencyKey}"
-        if (!signatureService.verify(dataToVerify, request.signature)) {
+        if (!signatureService.verify(dataToVerify, signature)) {
             throw SecurityException("서명 검증 실패")
         }
     }

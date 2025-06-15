@@ -25,14 +25,13 @@ class OrderService(
     }
 
     @Transactional
-    fun complete(orderUid: String, paymentKey: String): Order {
+    fun complete(orderUid: String): Order {
         val order = findByOrderUidOrThrow(orderUid)
 
         if (order.status == OrderStatus.PAID) {
             return order
         }
         order.status = OrderStatus.PAID
-        order.paymentKey = paymentKey
         return order
     }
 
