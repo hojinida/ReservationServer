@@ -2,6 +2,7 @@ package com.example.reservationsystem.controller
 
 import com.example.reservationsystem.dto.response.toResponseEntity
 import com.example.reservationsystem.service.PurchaseService
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,11 +17,11 @@ class PurchaseController(
 ) {
     @PostMapping
     fun purchase(@RequestBody request: PurchaseRequest): ResponseEntity<Any> {
-        return try {
-            val result = purchaseService.processPurchase(request.seatNumber, request.userId)
-            result.toResponseEntity()
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("시스템 오류가 발생했습니다.")
-        }
+        val result = purchaseService.processPurchase(request.seatNumber, request.userId)
+
+        val redirectUrl = "http://localhost:8080/mock-payment-page?orderUid=${result.order.orderUid}&amount=${result.order.amount}&idempotencyKey=${result.idempotencyKey}&signature=${result.signature}"
+        val headers = HttpHeaders()
+        headers.add("Location", redirectUrl)
+        return ResponseEntity(headers, HttpStatus.FOUND)
     }
 }

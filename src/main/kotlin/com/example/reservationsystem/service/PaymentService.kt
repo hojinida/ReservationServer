@@ -39,11 +39,10 @@ class PaymentService(
 
     fun failedCancel(request: CancelWebhookRequest): String {
         return executeWebhookLogic(request) {
-            //이메일 로직
+            // 이메일 로직 등
             "취소 실패 처리 완료"
         }
     }
-
 
     private fun executeWebhookLogic(request: WebhookRequest, businessLogic: () -> String): String {
         val dataToVerify = "${request.orderUid}:${request.amount}:${request.idempotencyKey}"
