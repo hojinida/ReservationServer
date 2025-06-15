@@ -29,7 +29,6 @@ class PurchaseService(
                         userId = userId,
                         price = reservationResult.price
                     )
-                    idempotencyRepository.saveResult(idempotencyKey, "PAYMENT_PENDING", Duration.ofMinutes(15))
                     return PurchaseResult.Success(order, idempotencyKey)
                 } catch (e: Exception) {
                     redisReservationRepository.cancelReservation(seatNumber, userId)

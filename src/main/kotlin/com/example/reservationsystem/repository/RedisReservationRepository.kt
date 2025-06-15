@@ -50,17 +50,15 @@ class RedisReservationRepository(
         return ReservationResult.from(result)
     }
 
-    // 결제 완료 처리 (원자적)
     fun completePayment(idempotencyKey: String, seatNumber: String): String {
         return redisTemplate.execute(
             completePaymentScript,
             listOf("idempotency:$idempotencyKey", "seat:$seatNumber"),
             "결제 성공 처리 완료",
             "21600"
-        ) ?: throw RuntimeException("레디스 연산 실패")
+        )
     }
 
-    // 결제 취소/실패 처리 (원자적)
     fun cancelPayment(
         idempotencyKey: String, seatNumber: String, userId: String, message: String
     ): String {
@@ -72,13 +70,13 @@ class RedisReservationRepository(
             userId,
             message,
             "21600"
-        ) ?: throw RuntimeException("레디스 연산 실패")
+        )
     }
 
     fun saveIdempotencyIfNotExists(idempotencyKey: String, result: String): String {
         return redisTemplate.execute(
             saveIdempotencyScript, listOf("idempotency:$idempotencyKey"), result, "21600"
-        ) ?: throw RuntimeException("레디스 연산 실패")
+        )
     }
 
     fun getIdempotency(idempotencyKey: String): String? {

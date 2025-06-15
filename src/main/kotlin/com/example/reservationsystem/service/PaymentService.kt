@@ -16,11 +16,15 @@ class PaymentService(
 ) {
     fun processPaymentSuccess(request: PaymentWebhookRequest, signature: String) {
         verifySignature(request, signature)
+        print("결제 성공 처리: ${request.orderUid}, ${request.idempotencyKey}")
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
         redisReservationRepository.completePayment(
             idempotencyKey = request.idempotencyKey,
             seatNumber = order.seatNumber
         ).let {
+            println("Redis 스크립트 실행 결과 (it): '$it'")
+            println("비교할 문자열: '결제 성공 처리 완료'")
+            println("두 문자열이 같은가? ${it == "결제 성공 처리 완료"}")
             if (it == "결제 성공 처리 완료") {
                 orderService.complete(request.orderUid)
             }
