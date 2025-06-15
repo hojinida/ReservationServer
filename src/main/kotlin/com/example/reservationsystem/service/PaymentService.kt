@@ -3,59 +3,113 @@ package com.example.reservationsystem.service
 import com.example.reservationsystem.dto.request.CancelWebhookRequest
 import com.example.reservationsystem.dto.request.PaymentWebhookRequest
 import com.example.reservationsystem.dto.request.WebhookRequest
-import com.example.reservationsystem.repository.IdempotencyRepository
+import com.example.reservationsystem.repository.RedisReservationRepository
 import org.springframework.stereotype.Service
 
 @Service
 class PaymentService(
     private val orderService: OrderService,
-    private val seatReservationService: SeatReservationService,
-    private val idempotencyRepository: IdempotencyRepository,
-    private val signatureService: SignatureService
+    private val signatureService: SignatureService,
+    private val redisReservationRepository: RedisReservationRepository
 ) {
     fun processPaymentSuccess(request: PaymentWebhookRequest): String {
-        return executeWebhookLogic(request) {
-            val completedOrder = orderService.complete(request.orderUid, request.paymentKey)
-            seatReservationService.completeReservation(completedOrder.seatNumber)
-            "결제 성공 처리 완료"
+        verifySignature(request)
+
+        val order = orderService.findByOrderUidOrThrow(request.orderUid)
+
+        val result = try {
+            redisReservationRepository.completePayment(
+                idempotencyKey = request.idempotencyKey,
+                seatNumber = order.seatNumber
+            )
+        } catch (e: Exception) {
+            throw RuntimeException("결제 처리 중 오류가 발생했습니다")
         }
+
+        if (result == "결제 성공 처리 완료") {
+            try {
+                orderService.complete(request.orderUid, request.paymentKey)
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+
+        return result
     }
 
     fun processPaymentFailure(request: PaymentWebhookRequest): String {
-        return executeWebhookLogic(request) {
-            val failedOrder = orderService.fail(request.orderUid)
-            seatReservationService.cancelReservation(failedOrder.seatNumber, failedOrder.userId)
-            "결제 실패 처리 완료"
+        verifySignature(request)
+
+        val order = orderService.findByOrderUidOrThrow(request.orderUid)
+
+        val result = try {
+            redisReservationRepository.cancelPayment(
+                idempotencyKey = request.idempotencyKey,
+                seatNumber = order.seatNumber,
+                userId = order.userId,
+                message = "결제 실패 처리 완료"
+            )
+        } catch (e: Exception) {
+            throw RuntimeException("결제 실패 처리 중 오류가 발생했습니다")
         }
+
+        if (result == "결제 실패 처리 완료") {
+            try {
+                orderService.fail(request.orderUid)
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+
+        return result
     }
 
     fun successfulCancel(request: CancelWebhookRequest): String {
-        return executeWebhookLogic(request) {
-            val order = orderService.cancel(request.orderUid)
-            seatReservationService.cancelReservation(order.seatNumber, order.userId)
-            "취소 성공 처리 완료"
+        verifySignature(request)
+
+        val order = orderService.findByOrderUidOrThrow(request.orderUid)
+
+        val result = try {
+            redisReservationRepository.cancelPayment(
+                idempotencyKey = request.idempotencyKey,
+                seatNumber = order.seatNumber,
+                userId = order.userId,
+                message = "취소 성공 처리 완료"
+            )
+        } catch (e: Exception) {
+            throw RuntimeException("취소 처리 중 오류가 발생했습니다")
         }
+
+        if (result == "취소 성공 처리 완료") {
+            try {
+                orderService.cancel(request.orderUid)
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+
+        return result
     }
 
     fun failedCancel(request: CancelWebhookRequest): String {
-        return executeWebhookLogic(request) {
-            // 이메일 로직 등
-            "취소 실패 처리 완료"
+        verifySignature(request)
+
+        val result = try {
+            redisReservationRepository.saveIdempotencyIfNotExists(
+                idempotencyKey = request.idempotencyKey,
+                result = "취소 실패 처리 완료"
+            )
+        } catch (e: Exception) {
+            throw RuntimeException("취소 실패 처리 중 오류가 발생했습니다")
         }
+
+        return result
     }
 
-    private fun executeWebhookLogic(request: WebhookRequest, businessLogic: () -> String): String {
+    private fun verifySignature(request: WebhookRequest) {
         val dataToVerify = "${request.orderUid}:${request.amount}:${request.idempotencyKey}"
         if (!signatureService.verify(dataToVerify, request.signature)) {
             throw SecurityException("서명 검증 실패")
         }
-
-        val cachedResult = idempotencyRepository.getResult(request.idempotencyKey)
-        if (cachedResult != null) return cachedResult
-
-        val result = businessLogic()
-
-        idempotencyRepository.saveResult(request.idempotencyKey, result)
-        return result
     }
 }

@@ -5,7 +5,6 @@ import com.example.reservationsystem.domain.OrderStatus
 import com.example.reservationsystem.dto.request.PaymentCancellationRequest
 import com.example.reservationsystem.exception.BadRequestException
 import com.example.reservationsystem.exception.ForbiddenException
-import com.example.reservationsystem.repository.OrderRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -16,9 +15,8 @@ import java.util.concurrent.Executor
 
 @Service
 class CancelService(
-    private val orderRepository: OrderRepository,
     private val signatureService: SignatureService,
-    private val paymentProperties: PaymentProperties,
+    paymentProperties: PaymentProperties,
     private val objectMapper: ObjectMapper,
     private val orderService: OrderService,
     webClientBuilder: WebClient.Builder,

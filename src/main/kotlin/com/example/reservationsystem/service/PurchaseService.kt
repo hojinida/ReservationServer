@@ -6,20 +6,21 @@ import com.example.reservationsystem.exception.ConflictException
 import com.example.reservationsystem.exception.NotFoundException
 import com.example.reservationsystem.exception.OrderProcessingException
 import com.example.reservationsystem.repository.IdempotencyRepository
+import com.example.reservationsystem.repository.RedisReservationRepository
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.util.UUID
 
 @Service
 class PurchaseService(
-    private val seatReservationService: SeatReservationService,
+    private val redisReservationRepository: RedisReservationRepository,
     private val orderService: OrderService,
     private val idempotencyRepository: IdempotencyRepository,
     private val signatureService: SignatureService
 ) {
 
     fun processPurchase(seatNumber: String, userId: String): PurchaseResult.Success {
-        val reservationResult = seatReservationService.reserveSeat(seatNumber, userId)
+        val reservationResult = redisReservationRepository.reserveSeat(seatNumber, userId, Duration.ofMinutes(15))
 
         when (reservationResult.status) {
             ReservationStatus.SUCCESS -> {
@@ -37,7 +38,7 @@ class PurchaseService(
                     )
                     return PurchaseResult.Success(order, idempotencyKey, signature)
                 } catch (e: Exception) {
-                    seatReservationService.cancelReservation(seatNumber, userId)
+                    redisReservationRepository.cancelReservation(seatNumber, userId)
                     throw OrderProcessingException("주문 생성 중 오류가 발생했습니다: ${e.message}") as Throwable
                 }
             }
