@@ -4,4 +4,5 @@ interface WebhookRequest {
     val idempotencyKey: String
     val orderUid: String
     val signature: String
+    val amount: Long
 }

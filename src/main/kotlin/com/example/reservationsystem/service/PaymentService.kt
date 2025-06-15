@@ -46,7 +46,7 @@ class PaymentService(
 
 
     private fun executeWebhookLogic(request: WebhookRequest, businessLogic: () -> String): String {
-        val dataToVerify = "${request.orderUid}:${request.idempotencyKey}"
+        val dataToVerify = "${request.orderUid}:${request.amount}:${request.idempotencyKey}"
         if (!signatureService.verify(dataToVerify, request.signature)) {
             throw SecurityException("서명 검증 실패")
         }

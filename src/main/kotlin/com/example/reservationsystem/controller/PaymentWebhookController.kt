@@ -3,6 +3,7 @@ package com.example.reservationsystem.controller
 import com.example.reservationsystem.dto.request.CancelWebhookRequest
 import com.example.reservationsystem.dto.request.PaymentWebhookRequest
 import com.example.reservationsystem.service.PaymentService
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -37,7 +38,9 @@ class PaymentWebhookController(
                 else -> return ResponseEntity.badRequest().body("알 수 없는 상태값입니다: ${request.status}")
             }
             return ResponseEntity.ok(result)
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("서명 검증 실패: ${e.message}")
+        }catch (e: Exception) {
             return ResponseEntity.internalServerError().body("웹훅 처리 중 오류 발생: ${e.message}")
         }
     }
