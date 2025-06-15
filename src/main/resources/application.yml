@@ -31,6 +31,3 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
-
-redisson:
-  file: "classpath:redisson.yaml"
