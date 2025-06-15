@@ -5,7 +5,6 @@ import com.example.reservationsystem.domain.OrderStatus
 import com.example.reservationsystem.repository.OrderRepository
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
-import java.rmi.server.UID
 import java.util.UUID
 
 @Service

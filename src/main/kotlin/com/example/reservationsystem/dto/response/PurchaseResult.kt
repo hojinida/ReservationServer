@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 
 sealed class PurchaseResult {
-    data class Success(val order: Order) : PurchaseResult()
+    data class Success(val order: Order, val idempotencyKey: String, val signature: String) : PurchaseResult()
     object SeatNotExists : PurchaseResult()
     object UserAlreadyReserved : PurchaseResult()
     object SeatAlreadyTaken : PurchaseResult()
@@ -16,7 +16,7 @@ sealed class PurchaseResult {
 fun PurchaseResult.toResponseEntity(): ResponseEntity<Any> {
     return when (this) {
         is PurchaseResult.Success -> {
-            val redirectUrl = "/mock-payment-page?orderId=${order.id}&amount=${order.amount}"
+            val redirectUrl = "http://localhost:8080/mock-payment-page?orderUid=${this.order.orderUid}&amount=${this.order.amount}&idempotencyKey=${this.idempotencyKey}&signature=${this.signature}"
             val headers = HttpHeaders()
             headers.add("Location", redirectUrl)
             ResponseEntity(headers, HttpStatus.FOUND)

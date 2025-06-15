@@ -16,7 +16,7 @@ class CancelController(
     @PostMapping
     fun requestCancel(@RequestBody request: CancelRequest): ResponseEntity<String> {
         return try {
-            cancelService.requestCancellation(request.orderId, request.userId)
+            cancelService.requestCancellation(request.orderUId, request.userId)
             ResponseEntity.ok("취소 요청이 접수되었습니다. 처리 결과는 이메일로 발송됩니다.")
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(e.message)

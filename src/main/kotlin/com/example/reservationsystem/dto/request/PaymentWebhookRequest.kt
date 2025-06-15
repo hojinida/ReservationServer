@@ -1,8 +1,9 @@
 package com.example.reservationsystem.dto.request
 
 data class PaymentWebhookRequest(
-    val idempotencyKey: String,
-    val orderUid: String,
+    override val idempotencyKey: String,
+    override val orderUid: String,
     val paymentKey: String,
-    val status: String
-)
+    val status: String,
+    override val signature: String
+) : WebhookRequest
