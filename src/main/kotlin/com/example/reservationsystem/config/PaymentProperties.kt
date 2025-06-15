@@ -6,6 +6,5 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties(prefix = "payment")
 data class PaymentProperties(
-    var secretKey: String = "",
-    var paymentsServerUrl: String = ""
+    var secretKey: String = "", var paymentsServerUrl: String = ""
 )

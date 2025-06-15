@@ -41,7 +41,6 @@ class GlobalExceptionHandler {
     fun handleGlobalException(e: Exception): ResponseEntity<ErrorResponse> {
         logger.error("An unexpected error occurred: {}", e.message, e)
         val message = if (e is OrderProcessingException) e.message else "시스템에 예상치 못한 오류가 발생했습니다."
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse(message))
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse(message))
     }
 }

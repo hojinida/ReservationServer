@@ -27,20 +27,21 @@ class PurchaseService(
                     val idempotencyKey = UUID.randomUUID().toString()
 
                     val order = orderService.createPendingOrder(
-                        seatNumber = seatNumber,
-                        userId = userId,
-                        price = reservationResult.price
+                        seatNumber = seatNumber, userId = userId, price = reservationResult.price
                     )
 
                     val dataToSign = "${order.orderUid}:${order.amount}:${idempotencyKey}"
                     val signature = signatureService.generate(dataToSign)
-                    idempotencyRepository.saveResult(idempotencyKey, "PAYMENT_PENDING", Duration.ofMinutes(15))
+                    idempotencyRepository.saveResult(
+                        idempotencyKey, "PAYMENT_PENDING", Duration.ofMinutes(15)
+                    )
                     return PurchaseResult.Success(order, idempotencyKey, signature)
                 } catch (e: Exception) {
                     seatReservationService.cancelReservation(seatNumber, userId)
                     throw OrderProcessingException("주문 생성 중 오류가 발생했습니다: ${e.message}") as Throwable
                 }
             }
+
             ReservationStatus.SEAT_NOT_EXISTS -> throw NotFoundException("존재하지 않는 좌석입니다.") as Throwable
             ReservationStatus.USER_ALREADY_RESERVED -> throw ConflictException("이미 예매하신 사용자입니다.") as Throwable
             ReservationStatus.SEAT_ALREADY_TAKEN -> throw ConflictException("이미 선점된 좌석입니다.") as Throwable

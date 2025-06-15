@@ -3,8 +3,7 @@ package com.example.reservationsystem.dto.response
 import com.example.reservationsystem.enums.ReservationStatus
 
 data class ReservationResult(
-    val status: ReservationStatus,
-    val price: Long = 0L
+    val status: ReservationStatus, val price: Long = 0L
 ) {
     companion object {
         fun from(result: List<Any>?): ReservationResult {

@@ -7,8 +7,7 @@ import java.time.Duration
 
 @Repository
 class IdempotencyRepository(
-    private val redisTemplate: RedisTemplate<String, String>,
-    private val objectMapper: ObjectMapper
+    private val redisTemplate: RedisTemplate<String, String>, private val objectMapper: ObjectMapper
 ) {
 
     fun saveResult(idempotencyKey: String, result: Any, ttl: Duration = Duration.ofHours(6)) {

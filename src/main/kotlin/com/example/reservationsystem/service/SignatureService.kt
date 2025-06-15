@@ -8,7 +8,7 @@ import javax.crypto.spec.SecretKeySpec
 
 @Service
 class SignatureService(
-    private val paymentProperties: PaymentProperties
+    paymentProperties: PaymentProperties
 ) {
     private val algorithm = "HmacSHA256"
     private val secretKeySpec = SecretKeySpec(paymentProperties.secretKey.toByteArray(), algorithm)

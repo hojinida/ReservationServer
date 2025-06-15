@@ -19,7 +19,8 @@ class PurchaseController(
     fun purchase(@RequestBody request: PurchaseRequest): ResponseEntity<Any> {
         val result = purchaseService.processPurchase(request.seatNumber, request.userId)
 
-        val redirectUrl = "http://localhost:8080/mock-payment-page?orderUid=${result.order.orderUid}&amount=${result.order.amount}&idempotencyKey=${result.idempotencyKey}&signature=${result.signature}"
+        val redirectUrl =
+            "http://localhost:8080/mock-payment-page?orderUid=${result.order.orderUid}&amount=${result.order.amount}&idempotencyKey=${result.idempotencyKey}&signature=${result.signature}"
         val headers = HttpHeaders()
         headers.add("Location", redirectUrl)
         return ResponseEntity(headers, HttpStatus.FOUND)

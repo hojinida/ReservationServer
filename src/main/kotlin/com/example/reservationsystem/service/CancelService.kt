@@ -50,14 +50,9 @@ class CancelService(
                 val payloadJson = objectMapper.writeValueAsString(requestPayload)
                 val signature = signatureService.generate(payloadJson)
 
-                webClient.post()
-                    .uri("/api/v1/pay/cancel")
-                    .header("X-Signature", signature)
-                    .header("Content-Type", "application/json")
-                    .bodyValue(payloadJson)
-                    .retrieve()
-                    .bodyToMono(Void::class.java)
-                    .subscribe()
+                webClient.post().uri("/api/v1/pay/cancel").header("X-Signature", signature)
+                    .header("Content-Type", "application/json").bodyValue(payloadJson).retrieve()
+                    .bodyToMono(Void::class.java).subscribe()
 
             } catch (e: Exception) {
                 throw RuntimeException("결제 취소 요청 중 오류 발생: ${e.message}", e)

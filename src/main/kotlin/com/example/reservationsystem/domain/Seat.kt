@@ -10,13 +10,9 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "seats")
 data class Seat(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null,
 
-    @Column(nullable = false, unique = true)
-    val seatNumber: String,
+    @Column(nullable = false, unique = true) val seatNumber: String,
 
-    @Column(nullable = false)
-    val amount: Long
+    @Column(nullable = false) val amount: Long
 )
