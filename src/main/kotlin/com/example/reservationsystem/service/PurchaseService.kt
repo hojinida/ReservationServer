@@ -5,7 +5,6 @@ import com.example.reservationsystem.enums.ReservationStatus
 import com.example.reservationsystem.exception.ConflictException
 import com.example.reservationsystem.exception.NotFoundException
 import com.example.reservationsystem.exception.OrderProcessingException
-import com.example.reservationsystem.repository.IdempotencyRepository
 import com.example.reservationsystem.repository.RedisReservationRepository
 import org.springframework.stereotype.Service
 import java.time.Duration
@@ -15,7 +14,6 @@ import java.util.UUID
 class PurchaseService(
     private val redisReservationRepository: RedisReservationRepository,
     private val orderService: OrderService,
-    private val idempotencyRepository: IdempotencyRepository,
 ) {
 
     fun processPurchase(seatNumber: String, userId: String): PurchaseResult.Success {

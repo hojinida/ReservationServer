@@ -59,6 +59,6 @@ class OrderService(
 
     fun findByOrderUidOrThrow(orderUid: String): Order {
         return orderRepository.findByOrderUid(orderUid)
-            ?: throw NotFoundException("주문을 찾을 수 없습니다. orderUid: $orderUid") as Throwable
+            ?: throw NotFoundException("주문을 찾을 수 없습니다. orderUid: $orderUid")
     }
 }
