@@ -24,16 +24,6 @@ class RedisReservationRepository(
         resultType = String::class.java
     }
 
-    private val cancelPaymentScript = DefaultRedisScript<String>().apply {
-        setLocation(ClassPathResource("scripts/cancel-payment.lua"))
-        resultType = String::class.java
-    }
-
-    private val saveIdempotencyScript = DefaultRedisScript<String>().apply {
-        setLocation(ClassPathResource("scripts/save-idempotency.lua"))
-        resultType = String::class.java
-    }
-
     private val userReservationShards = 100
 
     fun reserveSeat(seatNumber: String, userId: String, lockDuration: Duration): ReservationResult {
@@ -71,16 +61,6 @@ class RedisReservationRepository(
             message,
             "21600"
         )
-    }
-
-    fun saveIdempotencyIfNotExists(idempotencyKey: String, result: String): String {
-        return redisTemplate.execute(
-            saveIdempotencyScript, listOf("idempotency:$idempotencyKey"), result, "21600"
-        )
-    }
-
-    fun getIdempotency(idempotencyKey: String): String? {
-        return redisTemplate.opsForValue().get(idempotencyKey)
     }
 
     fun cancelReservation(seatNumber: String, userId: String) {

@@ -26,6 +26,7 @@ class CacheWarmUpRunner(
             if (!isLocked) {
                 return
             }
+            clearUserReservations()
 
             val allSeats = seatRepository.findAll()
             val hashOps = redisTemplate.opsForHash<String, String>()
@@ -49,6 +50,12 @@ class CacheWarmUpRunner(
             if (lock.isHeldByCurrentThread) {
                 lock.unlock()
             }
+        }
+    }
+
+    private fun clearUserReservations() {
+        repeat(100) { shardNumber ->
+            redisTemplate.delete("reserved_users:$shardNumber")
         }
     }
 }

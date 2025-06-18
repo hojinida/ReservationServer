@@ -16,57 +16,26 @@ class PaymentService(
 ) {
     fun processPaymentSuccess(request: PaymentWebhookRequest, signature: String) {
         verifySignature(request, signature)
-        print("결제 성공 처리: ${request.orderUid}, ${request.idempotencyKey}")
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
-        redisReservationRepository.completePayment(
-            idempotencyKey = request.idempotencyKey,
-            seatNumber = order.seatNumber
-        ).let {
-            println("Redis 스크립트 실행 결과 (it): '$it'")
-            println("비교할 문자열: '결제 성공 처리 완료'")
-            println("두 문자열이 같은가? ${it == "결제 성공 처리 완료"}")
-            if (it == "결제 성공 처리 완료") {
-                orderService.complete(request.orderUid)
-            }
-        }
+        redisReservationRepository.persistReservation(order.seatNumber)
+        orderService.complete(request.orderUid)
     }
 
     fun processPaymentFailure(request: PaymentWebhookRequest, signature: String) {
         verifySignature(request, signature)
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
-        redisReservationRepository.cancelPayment(
-            idempotencyKey = request.idempotencyKey,
-            seatNumber = order.seatNumber,
-            userId = order.userId,
-            message = "결제 실패 처리 완료"
-        ).let {
-            if (it == "결제 실패 처리 완료") {
-                orderService.fail(request.orderUid)
-            }
-        }
+        redisReservationRepository.cancelReservation(order.seatNumber, order.userId)
+        orderService.fail(request.orderUid)
     }
 
     fun successfulCancel(request: CancelWebhookRequest, signature: String) {
-        verifySignature(request, signature)
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
-        redisReservationRepository.cancelPayment(
-            idempotencyKey = request.idempotencyKey,
-            seatNumber = order.seatNumber,
-            userId = order.userId,
-            message = "취소 성공 처리 완료"
-        ).let {
-            if (it == "취소 성공 처리 완료") {
-                orderService.cancel(request.orderUid)
-            }
-        }
+        redisReservationRepository.cancelReservation(order.seatNumber, order.userId)
+        orderService.cancel(request.orderUid)
     }
 
     fun failedCancel(request: CancelWebhookRequest, signature: String) {
         verifySignature(request, signature)
-        redisReservationRepository.saveIdempotencyIfNotExists(
-            idempotencyKey = request.idempotencyKey,
-            result = "취소 실패 처리 완료"
-        )
     }
 
     private fun verifySignature(request: WebhookRequest, signature: String) {

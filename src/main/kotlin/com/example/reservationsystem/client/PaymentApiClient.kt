@@ -16,20 +16,19 @@ class PaymentApiClient(
 ) {
     private val webClient = webClientBuilder.baseUrl(paymentProperties.paymentsServerUrl).build()
 
-    fun requestPaymentConfirm(request: PaymentConfirmRequest, signature: String) {
+    fun requestPaymentConfirm(request: PaymentConfirmRequest) {
         val payloadJson = objectMapper.writeValueAsString(request)
-        sendPostRequest("/api/v1/pay/confirm", payloadJson, signature)
+        sendPostRequest("/api/v1/pay/confirm", payloadJson)
     }
 
-    fun requestPaymentCancel(request: PaymentCancellationRequest, signature: String) {
+    fun requestPaymentCancel(request: PaymentCancellationRequest) {
         val payloadJson = objectMapper.writeValueAsString(request)
-        sendPostRequest("/api/v1/pay/cancel", payloadJson, signature)
+        sendPostRequest("/api/v1/pay/cancel", payloadJson)
     }
 
-    private fun sendPostRequest(uri: String, payloadJson: String, signature: String) {
+    private fun sendPostRequest(uri: String, payloadJson: String) {
         webClient.post()
             .uri(uri)
-            .header("X-Signature", signature)
             .header("Content-Type", "application/json")
             .bodyValue(payloadJson)
             .retrieve()

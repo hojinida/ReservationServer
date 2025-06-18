@@ -2,9 +2,8 @@ package com.example.reservationsystem.controller
 
 import com.example.reservationsystem.client.PaymentApiClient
 import com.example.reservationsystem.dto.request.PaymentConfirmRequest
+import com.example.reservationsystem.dto.request.PurchaseRequest
 import com.example.reservationsystem.service.PurchaseService
-import com.example.reservationsystem.service.SignatureService
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.RestController
 class PurchaseController(
     private val purchaseService: PurchaseService,
     private val paymentApiClient: PaymentApiClient,
-    private val signatureService: SignatureService,
-    private val objectMapper: ObjectMapper
 ) {
     @PostMapping
     fun purchase(@RequestBody request: PurchaseRequest): ResponseEntity<Any> {
@@ -27,9 +24,7 @@ class PurchaseController(
             amount = result.order.amount,
             idempotencyKey = result.idempotencyKey
         )
-        val payloadJson = objectMapper.writeValueAsString(paymentRequest)
-        val signature = signatureService.generate(payloadJson)
-        paymentApiClient.requestPaymentConfirm(paymentRequest, signature)
+        paymentApiClient.requestPaymentConfirm(paymentRequest)
         val response = mapOf(
             "message" to "결제 요청이 성공적으로 접수되었습니다.",
             "orderUid" to result.order.orderUid
