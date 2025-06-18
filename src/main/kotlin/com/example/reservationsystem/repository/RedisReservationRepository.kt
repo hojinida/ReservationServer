@@ -19,14 +19,18 @@ class RedisReservationRepository(
             resultType = List::class.java as Class<List<Any>>
         }
 
-    private val completePaymentScript = DefaultRedisScript<String>().apply {
-        setLocation(ClassPathResource("scripts/complete-payment.lua"))
-        resultType = String::class.java
-    }
+    private val cancelPaymentScript: DefaultRedisScript<String> =
+        DefaultRedisScript<String>().apply {
+            setLocation(ClassPathResource("scripts/cancel-payment.lua"))
+            resultType = String::class.java
+        }
+
 
     private val userReservationShards = 100
 
-    fun reserveSeat(seatNumber: String, userId: String, lockDuration: Duration): ReservationResult {
+    fun reserveReservation(
+        seatNumber: String, userId: String, lockDuration: Duration
+    ): ReservationResult {
         val reservedUsersKey = getShardedUserKey(userId)
         val seatKey = "seat:$seatNumber"
 
@@ -40,44 +44,13 @@ class RedisReservationRepository(
         return ReservationResult.from(result)
     }
 
-    fun completePayment(idempotencyKey: String, seatNumber: String): String {
-        return redisTemplate.execute(
-            completePaymentScript,
-            listOf("idempotency:$idempotencyKey", "seat:$seatNumber"),
-            "결제 성공 처리 완료",
-            "21600"
-        )
-    }
-
-    fun cancelPayment(
-        idempotencyKey: String, seatNumber: String, userId: String, message: String
-    ): String {
-        val reservedUsersKey = getShardedUserKey(userId)
-
-        return redisTemplate.execute(
-            cancelPaymentScript,
-            listOf("idempotency:$idempotencyKey", "seat:$seatNumber", reservedUsersKey),
-            userId,
-            message,
-            "21600"
-        )
-    }
-
     fun cancelReservation(seatNumber: String, userId: String) {
-        releaseReservation(seatNumber, userId)
-        redisTemplate.opsForSet().remove(getShardedUserKey(userId), userId)
-    }
+        val seatKey = "seat:$seatNumber"
+        val userShardKey = getShardedUserKey(userId)
 
-    fun releaseReservation(seatNumber: String, userId: String) {
-        val seatInfoKey = "seat:$seatNumber"
-
-        redisTemplate.opsForHash<String, String>().putAll(
-            seatInfoKey, mapOf(
-                "isReserved" to "false", "reservedBy" to "", "reservedAt" to ""
-            )
+        redisTemplate.execute(
+            cancelPaymentScript, listOf(seatKey, userShardKey), userId
         )
-
-        redisTemplate.persist(seatInfoKey)
     }
 
     fun persistReservation(seatNumber: String) {

@@ -26,8 +26,7 @@ class PurchaseController(
         )
         paymentApiClient.requestPaymentConfirm(paymentRequest)
         val response = mapOf(
-            "message" to "결제 요청이 성공적으로 접수되었습니다.",
-            "orderUid" to result.order.orderUid
+            "message" to "결제 요청이 성공적으로 접수되었습니다.", "orderUid" to result.order.orderUid
         )
         return ResponseEntity.ok(response)
     }

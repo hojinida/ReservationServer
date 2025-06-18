@@ -9,17 +9,16 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
 
 @RestController
 @RequestMapping("/api/cancel")
 class CancelController(
-    private val cancelService: CancelService,
-    private val paymentApiClient: PaymentApiClient
+    private val cancelService: CancelService, private val paymentApiClient: PaymentApiClient
 ) {
     @PostMapping
     fun requestCancel(@RequestBody request: CancelRequest): ResponseEntity<String> {
-        val result = cancelService.validateAndGetOrderForCancellation(request.orderUId, request.userId)
+        val result =
+            cancelService.validateAndGetOrderForCancellation(request.orderUId, request.userId)
         val requestPayload = PaymentCancellationRequest(
             orderUid = result.orderUid,
             amount = result.amount,

@@ -17,15 +17,15 @@ class PurchaseService(
 ) {
 
     fun processPurchase(seatNumber: String, userId: String): PurchaseResult.Success {
-        val reservationResult = redisReservationRepository.reserveSeat(seatNumber, userId, Duration.ofMinutes(15))
+        val reservationResult = redisReservationRepository.reserveReservation(
+            seatNumber, userId, Duration.ofMinutes(15)
+        )
         when (reservationResult.status) {
             ReservationStatus.SUCCESS -> {
                 try {
                     val idempotencyKey = UUID.randomUUID().toString()
                     val order = orderService.createPendingOrder(
-                        seatNumber = seatNumber,
-                        userId = userId,
-                        price = reservationResult.price
+                        seatNumber = seatNumber, userId = userId, price = reservationResult.price
                     )
                     return PurchaseResult.Success(order, idempotencyKey)
                 } catch (e: Exception) {
@@ -33,6 +33,7 @@ class PurchaseService(
                     throw OrderProcessingException("주문 생성 중 오류가 발생했습니다: ${e.message}")
                 }
             }
+
             ReservationStatus.SEAT_NOT_EXISTS -> throw NotFoundException("존재하지 않는 좌석입니다.")
             ReservationStatus.USER_ALREADY_RESERVED -> throw ConflictException("이미 예매하신 사용자입니다.")
             ReservationStatus.SEAT_ALREADY_TAKEN -> throw ConflictException("이미 선점된 좌석입니다.")

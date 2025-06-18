@@ -12,4 +12,4 @@ redis.call('PERSIST', seatKey)
 
 redis.call('SREM', userShardKey, userId)
 
-return resultMessage
+return "취소 완료"

@@ -27,12 +27,7 @@ class PaymentApiClient(
     }
 
     private fun sendPostRequest(uri: String, payloadJson: String) {
-        webClient.post()
-            .uri(uri)
-            .header("Content-Type", "application/json")
-            .bodyValue(payloadJson)
-            .retrieve()
-            .toBodilessEntity()
-            .subscribe()
+        webClient.post().uri(uri).header("Content-Type", "application/json").bodyValue(payloadJson)
+            .retrieve().toBodilessEntity().subscribe()
     }
 }

@@ -29,6 +29,7 @@ class PaymentService(
     }
 
     fun successfulCancel(request: CancelWebhookRequest, signature: String) {
+        verifySignature(request, signature)
         val order = orderService.findByOrderUidOrThrow(request.orderUid)
         redisReservationRepository.cancelReservation(order.seatNumber, order.userId)
         orderService.cancel(request.orderUid)

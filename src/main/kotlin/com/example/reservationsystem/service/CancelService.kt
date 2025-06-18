@@ -1,6 +1,5 @@
 package com.example.reservationsystem.service
 
-import com.example.reservationsystem.domain.Order
 import com.example.reservationsystem.domain.OrderStatus
 import com.example.reservationsystem.dto.response.CancelResult
 import com.example.reservationsystem.exception.BadRequestException
@@ -12,7 +11,7 @@ import java.util.UUID
 class CancelService(
     private val orderService: OrderService,
 ) {
-    fun validateAndGetOrderForCancellation(orderUid: String, userId: String): CancelResult{
+    fun validateAndGetOrderForCancellation(orderUid: String, userId: String): CancelResult {
         val order = orderService.findByOrderUidOrThrow(orderUid)
         if (order.userId != userId) {
             throw ForbiddenException("본인의 예매만 취소할 수 있습니다.")
